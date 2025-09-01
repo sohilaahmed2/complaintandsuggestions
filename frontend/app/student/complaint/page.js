@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 const API_URL = "https://hana74.pythonanywhere.com";
+
 export default function ComplaintPage() {
   const [data, setData] = useState({
     type: "Complaint",
@@ -8,6 +9,7 @@ export default function ComplaintPage() {
     description: "",
     file: null,
   });
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
     if (e.target.name === "file") {
@@ -19,28 +21,41 @@ export default function ComplaintPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Submitting complaint...");
+    setError("");
+
+    // --- FRONTEND VALIDATION ---
+    if (data.title.trim().length < 5) {
+      setError("Title must be at least 5 characters long.");
+      return;
+    }
+    if (data.description.trim().length < 15) {
+      setError("Description must be at least 15 characters long.");
+      return;
+    }
+    if (data.file && data.file.size > 5 * 1024 * 1024) {
+      setError("File must be less than 5MB.");
+      return;
+    }
 
     const formData = new FormData();
     formData.append("type", data.type);
-    formData.append("title", data.title);
-    formData.append("description", data.description);
+    formData.append("title", data.title.trim());
+    formData.append("description", data.description.trim());
     if (data.file) {
       formData.append("file", data.file);
     }
 
-    
     const res = await fetch(`${API_URL}/members/submit/`, {
       method: "POST",
       body: formData,
       credentials: "include",
     });
-    const result = await res.json();
 
+    const result = await res.json();
     if (result.success) {
       window.location.href = "/student/success";
     } else {
-      alert(result.message || "Something went wrong");
+      setError(result.message || "Something went wrong.");
     }
   };
 
@@ -56,6 +71,13 @@ export default function ComplaintPage() {
             Please fill in the form below to send your message to the management.
           </p>
         </div>
+
+        {/* Error */}
+        {error && (
+          <div className="p-3 bg-red-100 text-red-700 rounded-lg text-center">
+            {error}
+          </div>
+        )}
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -110,7 +132,7 @@ export default function ComplaintPage() {
           {/* File Upload */}
           <div>
             <label className="block text-lg font-semibold text-gray-700 dark:text-gray-200 mb-2">
-              Upload File / Image
+              Upload File / Image (optional)
             </label>
             <input
               type="file"
