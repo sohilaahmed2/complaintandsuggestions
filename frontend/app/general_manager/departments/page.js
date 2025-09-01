@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+
 const API_URL = "https://hana74.pythonanywhere.com";
+
 export default function DepartmentsTable() {
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,9 +17,9 @@ export default function DepartmentsTable() {
       const res = await fetch(`${API_URL}/members/departments/`);
       if (!res.ok) throw new Error("Failed to fetch departments");
       const data = await res.json();
-      // Add real IDs from Django
-      const depts = data.departments.map((name, idx) => ({ id: idx + 1, name }));
-      setDepartments(depts);
+
+      // ✅ Use the real IDs from backend
+      setDepartments(data.departments);
       setLoading(false);
     } catch (err) {
       setError(err.message);
@@ -49,8 +51,18 @@ export default function DepartmentsTable() {
     }
   };
 
-  if (loading) return <p className="text-center mt-10 text-gray-500 dark:text-gray-300">Loading...</p>;
-  if (error) return <p className="text-center mt-10 text-red-500 dark:text-red-400">{error}</p>;
+  if (loading)
+    return (
+      <p className="text-center mt-10 text-gray-500 dark:text-gray-300">
+        Loading...
+      </p>
+    );
+  if (error)
+    return (
+      <p className="text-center mt-10 text-red-500 dark:text-red-400">
+        {error}
+      </p>
+    );
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900 p-6 transition-colors">
@@ -73,14 +85,24 @@ export default function DepartmentsTable() {
                 <tr
                   key={dept.id}
                   className={`${
-                    idx % 2 === 0 ? "bg-white dark:bg-gray-800" : "bg-gray-50 dark:bg-gray-700"
+                    idx % 2 === 0
+                      ? "bg-white dark:bg-gray-800"
+                      : "bg-gray-50 dark:bg-gray-700"
                   } hover:bg-gray-100 dark:hover:bg-gray-600 transition`}
                 >
-                  <td className="py-3 px-4 text-blue-800 dark:text-blue-400">{dept.id}</td>
-                  <td className="py-3 px-4 text-blue-800 dark:text-blue-400">{dept.name}</td>
+                  <td className="py-3 px-4 text-blue-800 dark:text-blue-400">
+                    {dept.id}
+                  </td>
+                  <td className="py-3 px-4 text-blue-800 dark:text-blue-400">
+                    {dept.name}
+                  </td>
                   <td className="py-3 px-4 flex gap-3 justify-center">
                     <button
-                      onClick={() => router.push(`/general_manager/departments/${dept.id}/edit`)}
+                      onClick={() =>
+                        router.push(
+                          `/general_manager/departments/${dept.id}/edit`
+                        )
+                      }
                       className="px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-white rounded-lg shadow transition"
                     >
                       Edit
@@ -97,7 +119,10 @@ export default function DepartmentsTable() {
 
               {departments.length === 0 && (
                 <tr>
-                  <td colSpan="3" className="py-4 text-center text-gray-500 dark:text-gray-400">
+                  <td
+                    colSpan="3"
+                    className="py-4 text-center text-gray-500 dark:text-gray-400"
+                  >
                     No departments found
                   </td>
                 </tr>
