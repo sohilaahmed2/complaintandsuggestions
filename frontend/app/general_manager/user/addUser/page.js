@@ -20,7 +20,7 @@ export default function AddUserPage() {
   useEffect(() => {
     fetch(`${API_URL}/members/departments/`)
       .then((res) => res.json())
-      .then((data) => setDepartments(data.departments))
+      .then((data) => setDepartments(data.departments || []))
       .catch((err) => console.error("Failed to load departments:", err));
   }, []);
 
@@ -36,10 +36,20 @@ export default function AddUserPage() {
     setMessage("");
 
     try {
+      // Map department ID to name for backend
+      const selectedDept = departments.find(
+        (d) => d.id.toString() === formData.dept
+      );
+
+      const payload = {
+        ...formData,
+        dept: selectedDept?.name || "",
+      };
+
       const res = await fetch(`${API_URL}/members/addUser/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
         credentials: "include",
       });
 
@@ -53,7 +63,7 @@ export default function AddUserPage() {
           username: "",
           email: "",
           name: "",
-          role: "DepartmentManager", // reset with default role
+          role: "DepartmentManager",
           dept: "",
           password: "",
         });
@@ -65,9 +75,7 @@ export default function AddUserPage() {
 
   return (
     <div className="max-w-lg mx-auto mt-10 p-6 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg text-gray-900 dark:text-gray-200 transition-colors">
-      <h2 className="text-xl font-semibold text-center mb-6">
-        Add User
-      </h2>
+      <h2 className="text-xl font-semibold text-center mb-6">Add User</h2>
 
       <form className="flex flex-col space-y-4" onSubmit={handleSubmit}>
         {/* Username */}
@@ -127,9 +135,9 @@ export default function AddUserPage() {
             className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200 text-sm"
           >
             <option value="">Select department</option>
-            {departments.map((d, idx) => (
-              <option key={idx} value={d}>
-                {d}
+            {departments.map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.name}
               </option>
             ))}
           </select>
@@ -180,7 +188,9 @@ export default function AddUserPage() {
       {message && (
         <p
           className={`mt-4 text-center text-sm ${
-            message.startsWith("✅") ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+            message.startsWith("✅")
+              ? "text-green-600 dark:text-green-400"
+              : "text-red-600 dark:text-red-400"
           }`}
         >
           {message}
